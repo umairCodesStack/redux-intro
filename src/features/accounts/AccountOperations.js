@@ -10,6 +10,7 @@ function AccountOperations() {
   const [currency, setCurrency] = useState("USD");
   const dispatch = useDispatch();
   const account = useSelector((state) => state.account);
+  console.log(account);
   function handleDeposit() {
     if (!depositAmount || !currency) return;
     dispatch(deposit(depositAmount, currency));
@@ -31,7 +32,7 @@ function AccountOperations() {
   }
 
   function handlePayLoan() {
-    dispatch(payLoan);
+    dispatch(payLoan());
   }
 
   return (
