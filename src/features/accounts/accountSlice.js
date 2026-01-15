@@ -2,6 +2,7 @@ const initialState = {
   balance: 0,
   loan: 0,
   loanPurpose: "",
+  isLoading: false,
 };
 export default function accountReducer(state = initialState, action) {
   switch (action.type) {
@@ -9,6 +10,7 @@ export default function accountReducer(state = initialState, action) {
       return {
         ...state,
         balance: state.balance + action.payload,
+        isLoading: false,
       };
     case "account/withdraw":
       return {
@@ -30,14 +32,33 @@ export default function accountReducer(state = initialState, action) {
         loan: 0,
         loanPurpose: "",
       };
+    case "account/convertCurrency":
+      return {
+        ...state,
+        isLoading: true,
+      };
     default:
       return state;
   }
 }
-export function deposit(amount) {
-  return {
-    type: "account/deposit",
-    payload: 500,
+export function deposit(amount, currency) {
+  if (currency === "USD")
+    return {
+      type: "account/deposit",
+      payload: amount,
+    };
+  return async function (dispatch, getState) {
+    dispatch({ type: "account/convertCurrency" });
+    const date = new Date().toISOString().slice(0, 10);
+    const url = `https://api.frankfurter.app/${date}?from=${currency}&to=USD`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const rate = data.rates.USD;
+    const convertedAmount = amount * rate;
+    dispatch({
+      type: "account/deposit",
+      payload: convertedAmount,
+    });
   };
 }
 export function requestLoan(amount, purpose) {
@@ -52,7 +73,7 @@ export function withdraw(amount) {
     payload: amount,
   };
 }
-function payLoan() {
+export function payLoan() {
   return {
     type: "account/payLoan",
   };
